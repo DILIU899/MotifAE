@@ -1,0 +1,65 @@
+# Important: Most parameters, if not needed, provided as null or not provided is the same.
+
+##########################################
+## model initialization config
+##########################################
+
+seed: 42 # set model random seed, if provided
+std_model_checkpoint: path_to_SAE_chk  # Need to start from a trained SAE model
+new_model_checkpoint: null  # Or start directly from a trained modified model, if provided, default use this checkpoint. 
+freeze_para: # the name of all paras freezed during training (If not needed, delete the para, cannot provided as null)
+  - bias
+  - encoder.weight
+  - encoder.bias
+  - decoder.weight
+temperature: 1  # hyperparameter to make the sigmoid function on gate more steep, i.e. smaller temperature, more potential 0,1, setting to 1 to get original sigmoid function
+
+##########################################
+## Dataset config
+##########################################
+
+label:  # name of your label column
+  - "score"
+train_meta_data: path_to_train_datafile  # if `train` in mode, must provide
+valid_meta_data: path_to_valid_datafile # if `valid` in mode, must provide
+test_meta_data: path_to_test_datafile  # if `test` in mode, must provide
+embedding_path: path_to_precomputed_esm2_embedding  # path to precomputed embedding, should be ESM2 650M
+chunk_seq: true  # whether to chunk the seq embedding to fit to the domain data, can be used when precomputed embedding is full length
+cache_embedding: true # whether to cache all embeddings in ram
+domain_diversity: 1 # in one batch, the domainID diversity. higher means higher diversity, 0 is 1 batch 1 domain 
+batch_size: 2048  # dataloader batch size
+
+##########################################
+## Training config
+##########################################
+
+lr: 0.001  # initial learning rate
+warmup_steps: 500 # learning rate scheduler warming up steps
+n_epoch: 15 # training epoch num for this time training (if continue train, the extra training epoch)
+
+##########################################
+## loss function config
+##########################################
+
+zero_one_penalty: 0  # penalty on gate not being {0, 1}, bigger penalty, bigger zero_one_loss
+zero_one_annealing_steps: 0  # step num to increase penalty from zero to final
+l1_penalty: 0.00001  # penalty on gate sparsity, bigger penalty, bigger l1_loss
+l1_annealing_steps: 300  # step num to increase penalty from zero to final
+rank_reg_strength: 0.1  # used in soft rank, smaller value make rank function less smooth (if too small, makes soft rank back to hard rank, which is unable to generate gradient)
+rank_reg_method: kl # used in soft rank, can choose from `kl` and `l2`
+
+##########################################
+## other configs (some basic setting)
+##########################################
+
+device: 0 # gpu id, if just loaded to "cpu", then provide `null`
+log_dir: path_to_your_storage_dir  # dir to save model logs
+log_step: 50  # save log info every `log_step` steps
+save_checkpoint_step: 50  # save model checkpoint every `save_checkpoint_step` steps
+log_mode: INFO # set printed logging info level, choose from INFO, DEBUG, ...
+loss_log: # If provided, use this loss log to substitute for the default loss log
+    - spearman_loss
+    - l1_loss
+    - total_loss
+    - lr
+    - l1_penalty
