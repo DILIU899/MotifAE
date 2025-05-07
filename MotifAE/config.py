@@ -1,5 +1,5 @@
 my_config = {
-    "stage":'representative', # 'human' or 'representative'
+    "stage":'representative', 
 
     "layer": 33,
     "plm_name": 'esm2_t33_650M_UR50D',
